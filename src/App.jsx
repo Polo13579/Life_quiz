@@ -853,6 +853,13 @@ function Result({main,intuition,consistent}){
         allowTaint:true,
         logging:false,
         foreignObjectRendering:false,
+        onclone:(clonedDoc)=>{
+          const c=clonedDoc.getElementById("result-card");
+          c.style.animation="none";
+          c.querySelectorAll("*").forEach(el=>{
+            el.style.animation="none";
+          });
+        },
       });
       const link=document.createElement("a");
       link.download=`落点_${r.role}.png`;
