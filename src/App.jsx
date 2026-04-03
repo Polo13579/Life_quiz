@@ -842,8 +842,9 @@ function Result({main,intuition,consistent}){
   const handleSave=async()=>{
     if(saveState!=="default")return;
     setSaveState("saving");
-    await new Promise(res=>setTimeout(res,800));
     try{
+      await document.fonts.ready;
+      await new Promise(res=>setTimeout(res,1000));
       const card=document.getElementById("result-card");
       const canvas=await html2canvas(card,{
         backgroundColor:"#0C0C0E",
@@ -851,10 +852,7 @@ function Result({main,intuition,consistent}){
         useCORS:true,
         allowTaint:true,
         logging:false,
-        onclone:(clonedDoc)=>{
-          const clonedCard=clonedDoc.getElementById("result-card");
-          clonedCard.style.display="block";
-        },
+        foreignObjectRendering:false,
       });
       const link=document.createElement("a");
       link.download=`落点_${r.role}.png`;
@@ -863,6 +861,7 @@ function Result({main,intuition,consistent}){
       setSaveState("done");
       setTimeout(()=>setSaveState("default"),2000);
     }catch(e){
+      console.error(e);
       setSaveState("default");
     }
   };
@@ -878,7 +877,7 @@ function Result({main,intuition,consistent}){
       <div style={{position:"relative",zIndex:1,maxWidth:480,margin:"0 auto",padding:"40px 24px 80px"}}>
 
         {/* ── Result Card (captured area) ── */}
-        <div id="result-card" style={{background:"#0C0C0E",width:"100%",position:"relative"}}>
+        <div id="result-card" style={{background:"#0C0C0E",width:"100%",position:"relative",zIndex:1}}>
 
           {/* Header section */}
           <div style={{padding:"32px 28px 20px"}}>
