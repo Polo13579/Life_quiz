@@ -529,13 +529,21 @@ function MusicPlayer({acc,autoPlay}){
     audio.volume=0;
     audio.play().catch(()=>{});
     setPlaying(true);
-    let vol=0;
-    const fadeIn=setInterval(()=>{
-      vol=Math.min(vol+0.05,1);
-      if(ref.current)ref.current.volume=vol;
-      if(vol>=1)clearInterval(fadeIn);
-    },100);
-    return()=>clearInterval(fadeIn);
+    const totalDuration=4000;
+    const steps=40;
+    const interval=totalDuration/steps;
+    const targetVolume=0.35;
+    const volumeStep=targetVolume/steps;
+    let currentStep=0;
+    const fadeTimer=setInterval(()=>{
+      currentStep++;
+      if(ref.current&&currentStep<=steps){
+        ref.current.volume=Math.min(volumeStep*currentStep,targetVolume);
+      }else{
+        clearInterval(fadeTimer);
+      }
+    },interval);
+    return()=>clearInterval(fadeTimer);
   },[]);
   const toggle=()=>{
     if(!AUDIO_SRC)return;
