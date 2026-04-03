@@ -500,7 +500,7 @@ function score(answers) {
     else if(geo==="回")main="归位生活家";
     else main=cap==="hi"?"异乡定居者":"落差承接者";
   }else{main=geo==="回"?"落差承接者":"悬空生存者";}
-  return{main,consistent:answers[6]===answers[20]&&answers[6]!=null};
+  return{main,consistent:answers[6]===answers[20]&&answers[6]!=null,scores:s};
 }
 
 // ─── MUSIC PLAYER ───────────────────────────────────────────────────────────
@@ -995,12 +995,12 @@ function Result({main,intuition,consistent}){
 }
 
 // ─── APP ────────────────────────────────────────────────────────────────────
-async function saveResult(answers, result, scores, intuition) {
+async function saveResult(answers, mainResult, scores, intuition) {
   try {
     await supabase.from('quiz_results').insert({
       intuition,
       answers,
-      result,
+      main_result: mainResult,
       scores,
       device: window.innerWidth < 768 ? 'mobile' : 'desktop'
     })
@@ -1037,7 +1037,7 @@ export default function App(){
     const na={...answers,[cur.id]:optIdx};
     setAnswers(na);
     const ni=qi+1;
-    if(ni>=QS.length){saveResult(na,score(na).main,score(na),intuition);transition(()=>setScreen("loading"));return;}
+    if(ni>=QS.length){const r=score(na);saveResult(na,r.main,r.scores,intuition);transition(()=>setScreen("loading"));return;}
     const nq=QS[ni];
     if(nq.ch!==cur.ch){
       transition(()=>{
