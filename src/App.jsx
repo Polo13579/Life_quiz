@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import html2canvas from 'html2canvas'
 import { createClient } from '@supabase/supabase-js'
+import { Analytics } from "@vercel/analytics/react"
 const supabase = createClient(
   'https://whhnijvhrkpgyesosjyx.supabase.co',
   'sb_publishable_G-YJXa7xddQUv_ThcsVngw_86AoeUOf'
@@ -19,7 +20,7 @@ function GlobalStyles() {
       @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
       @keyframes fadeIn{from{opacity:0}to{opacity:1}}
       @keyframes glitch{
-        0%,100%{text-shadow:-2px 0 #ff00ff,2px 0 #00ffff;transform:translateX(0)}
+        0%,100%{text-shadow:-2px 0rgb(61, 51, 61),2px 0 #00ffff;transform:translateX(0)}
         20%{text-shadow:-3px 0 #ff00ff,3px 0 #00ffff;transform:translateX(-2px)}
         40%{text-shadow:3px 0 #ff00ff,-3px 0 #00ffff;transform:translateX(2px)}
         60%{text-shadow:-2px 2px #ff00ff,2px -2px #00ffff;transform:translateX(-1px)}
@@ -1130,6 +1131,7 @@ export default function App(){
 
   return(
     <div style={{maxWidth:480,margin:"0 auto",minHeight:"100vh",position:"relative"}}>
+      <Analytics/>
       <GlobalStyles/>
       <CRTNoise/>
       <div className="crt-overlay"/>
