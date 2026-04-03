@@ -995,12 +995,13 @@ function Result({main,intuition,consistent}){
 }
 
 // ─── APP ────────────────────────────────────────────────────────────────────
-async function saveResult(answers, mainResult, scores, intuition) {
+async function saveResult(answers, result, scores, intuition) {
+  console.log('saving:', {intuition, answers, result, scores})
   try {
     await supabase.from('quiz_results').insert({
       intuition,
       answers,
-      main_result: mainResult,
+      result,
       scores,
       device: window.innerWidth < 768 ? 'mobile' : 'desktop'
     })
