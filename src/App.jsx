@@ -842,17 +842,22 @@ function Result({main,intuition,consistent}){
   const handleSave=async()=>{
     if(saveState!=="default")return;
     setSaveState("saving");
-    await new Promise(res=>setTimeout(res,500));
+    await new Promise(res=>setTimeout(res,800));
     try{
       const card=document.getElementById("result-card");
       const canvas=await html2canvas(card,{
         backgroundColor:"#0C0C0E",
         scale:3,
         useCORS:true,
+        allowTaint:true,
         logging:false,
+        onclone:(clonedDoc)=>{
+          const clonedCard=clonedDoc.getElementById("result-card");
+          clonedCard.style.display="block";
+        },
       });
       const link=document.createElement("a");
-      link.download=`落点_${r.role}_${r.tier}.png`;
+      link.download=`落点_${r.role}.png`;
       link.href=canvas.toDataURL("image/png");
       link.click();
       setSaveState("done");
@@ -873,109 +878,78 @@ function Result({main,intuition,consistent}){
       <div style={{position:"relative",zIndex:1,maxWidth:480,margin:"0 auto",padding:"40px 24px 80px"}}>
 
         {/* ── Result Card (captured area) ── */}
-        <div id="result-card" style={{
-          background:"#0C0C0E",padding:"40px 32px",width:"100%",position:"relative",
-        }}>
+        <div id="result-card" style={{background:"#0C0C0E",width:"100%",position:"relative"}}>
 
-          {/* Badge - game achievement popup */}
-          <div style={{display:"flex",justifyContent:"center",marginBottom:22,
-            animation:"badgeSlideIn .8s cubic-bezier(.34,1.56,.64,1) .1s both"}}>
-            <div className={r.px} style={{fontFamily:"'Press Start 2P',monospace",fontSize:7,
-              color:r.acc,padding:"8px 14px",letterSpacing:1,lineHeight:1.9,textAlign:"center",
-              textTransform:"uppercase",textShadow:`0 0 8px ${r.acc}99`,
-              boxShadow:`3px 3px 0 rgba(0,0,0,.4), 0 0 12px ${r.acc}44`}}>
-              🏆  {r.badge}
+          {/* Header section */}
+          <div style={{padding:"32px 28px 20px"}}>
+
+            {/* Badge */}
+            <div style={{display:"flex",justifyContent:"center",marginBottom:22,
+              animation:"badgeSlideIn .8s cubic-bezier(.34,1.56,.64,1) .1s both"}}>
+              <div className={r.px} style={{fontFamily:"'Press Start 2P',monospace",fontSize:7,
+                color:r.acc,padding:"8px 14px",letterSpacing:1,lineHeight:1.9,textAlign:"center",
+                textTransform:"uppercase",textShadow:`0 0 8px ${r.acc}99`,
+                boxShadow:`3px 3px 0 rgba(0,0,0,.4), 0 0 12px ${r.acc}44`}}>
+                🏆  {r.badge}
+              </div>
             </div>
+
+            {/* Tier */}
+            <div style={{fontFamily:"'Press Start 2P',monospace",fontSize:8,color:tc,
+              textAlign:"center",letterSpacing:3,marginBottom:10,animation:"fadeIn .6s ease .3s both",
+              textTransform:"uppercase",textShadow:`0 0 8px ${tc}88`}}>
+              {r.tier} · {r.symbol}
+            </div>
+
+            {/* Title */}
+            <h1 style={{fontFamily:"'Noto Serif SC',serif",fontSize:"clamp(28px,8vw,44px)",
+              fontWeight:500,color:"#e8e0d0",textAlign:"center",marginBottom:12,lineHeight:1.3,
+              animation:glitch
+                ?"glitchHeavy 1.2s ease infinite,fadeUp .8s ease .4s both"
+                :"fadeUp .8s ease .4s both",
+              textShadow:glitch?undefined:"-2px 0 #ff00ff, 2px 0 #00ffff"}}>
+              {r.role}
+            </h1>
+
+            {/* Type line */}
+            <div style={{fontFamily:"'Press Start 2P',monospace",fontSize:7,color:r.acc,opacity:.6,
+              textAlign:"center",letterSpacing:2,textShadow:`0 0 6px ${r.acc}88`}}>
+              — {r.badge} —
+            </div>
+
           </div>
 
-          {/* Tier */}
-          <div style={{fontFamily:"'Press Start 2P',monospace",fontSize:8,color:tc,
-            textAlign:"center",letterSpacing:3,marginBottom:10,animation:"fadeIn .6s ease .3s both",
-            textTransform:"uppercase",textShadow:`0 0 8px ${tc}88`}}>
-            {r.tier} · {r.symbol}
-          </div>
-
-          {/* Title with heavy glitch */}
-          <h1 style={{fontFamily:"'Noto Serif SC',serif",fontSize:"clamp(28px,8vw,44px)",
-            fontWeight:500,color:"#e8e0d0",textAlign:"center",marginBottom:28,lineHeight:1.3,
-            animation:glitch
-              ?"glitchHeavy 1.2s ease infinite,fadeUp .8s ease .4s both"
-              :"fadeUp .8s ease .4s both",
-            textShadow:glitch?undefined:"-2px 0 #ff00ff, 2px 0 #00ffff"}}>
-            {r.role}
-          </h1>
-
-          {/* Divider */}
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:28,animation:"fadeIn .6s ease .5s both"}}>
-            <div style={{flex:1,height:1,background:`linear-gradient(90deg,transparent,${r.acc}40,transparent)`}}/>
-            <span style={{fontFamily:"'Press Start 2P',monospace",fontSize:8,color:r.acc,opacity:.6,
-              textShadow:`0 0 6px ${r.acc}88`}}>✦</span>
-            <div style={{flex:1,height:1,background:`linear-gradient(90deg,transparent,${r.acc}40,transparent)`}}/>
-          </div>
-
-          {/* Result image with CRT overlay */}
-          <div className={r.px} style={{
-            width:"100%",background:"rgba(8,12,10,.6)",
-            marginBottom:28,animation:"fadeUp .8s ease .5s both",
-            position:"relative",overflow:"hidden",
-          }}>
-            <img src={r.img} alt={r.role} style={{
-              width:"100%",display:"block",
-              imageRendering:"pixelated",
+          {/* Image - full width, no padding */}
+          {r.img&&(
+            <img src={r.img} alt={r.role} crossOrigin="anonymous" style={{
+              width:"100%",display:"block",imageRendering:"pixelated",
             }}/>
-            <div style={{position:"absolute",inset:0,pointerEvents:"none",
-              background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.12) 2px,rgba(0,0,0,.12) 4px)",
-              mixBlendMode:"multiply"}}/>
-            <div style={{position:"absolute",inset:0,pointerEvents:"none",
-              background:"radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.45) 100%)"}}/>
-            {[[0,0,0,0],[1,0,"right",0],[0,1,0,"bottom"],[1,1,"right","bottom"]].map(([_,__,h,v],i)=>(
-              <div key={i} style={{position:"absolute",[h||"left"]:0,[v||"top"]:0,
-                width:14,height:14,background:r.acc,opacity:.5}}/>
-            ))}
-          </div>
-
-          {/* First 3 paragraphs of body (inside card) */}
-          <div style={{animation:"fadeUp .8s ease .7s both"}}>
-            {r.body.slice(0,3).map((p,i)=>(
-              <p key={i} style={{
-                fontFamily:"'Noto Serif SC',serif",
-                fontSize:"clamp(14px,3.5vw,16px)",
-                color:"#6a6058",
-                lineHeight:2.05,marginBottom:18,
-                fontWeight:300,
-                textShadow:"1px 0 rgba(0,255,255,0.15)",
-              }}>{p}</p>
-            ))}
-          </div>
-
-          {/* Watermark */}
-          <div style={{
-            textAlign:"center",marginTop:32,paddingTop:16,
-            borderTop:"1px solid rgba(255,255,255,0.1)",
-            fontFamily:"'Press Start 2P',monospace",fontSize:8,
-            color:"rgba(255,255,255,0.3)",letterSpacing:2,
-          }}>
-            落点 · luohui.vercel.app
-          </div>
+          )}
 
         </div>
         {/* ── End Result Card ── */}
 
-        {/* Remaining body paragraphs (outside card) */}
-        {r.body.length>3&&(
-          <div style={{animation:"fadeUp .8s ease .7s both",marginTop:8}}>
-            {r.body.slice(3).map((p,i)=>(
-              <p key={i+3} style={{
-                fontFamily:"'Noto Serif SC',serif",
-                fontSize:"clamp(14px,3.5vw,16px)",
-                color:i+3===r.body.length-1?"#d8d0c0":"#6a6058",
-                lineHeight:2.05,marginBottom:18,
-                fontWeight:i+3===r.body.length-1?400:300,
-                textShadow:"1px 0 rgba(0,255,255,0.15)",
-              }}>{p}</p>
-            ))}
-          </div>
-        )}
+        {/* Divider (outside card) */}
+        <div style={{display:"flex",alignItems:"center",gap:10,margin:"28px 0",animation:"fadeIn .6s ease .5s both"}}>
+          <div style={{flex:1,height:1,background:`linear-gradient(90deg,transparent,${r.acc}40,transparent)`}}/>
+          <span style={{fontFamily:"'Press Start 2P',monospace",fontSize:8,color:r.acc,opacity:.6,
+            textShadow:`0 0 6px ${r.acc}88`}}>✦</span>
+          <div style={{flex:1,height:1,background:`linear-gradient(90deg,transparent,${r.acc}40,transparent)`}}/>
+        </div>
+
+        {/* Full body text (outside card) */}
+        <div style={{animation:"fadeUp .8s ease .7s both"}}>
+          {r.body.map((p,i)=>(
+            <p key={i} style={{
+              fontFamily:"'Noto Serif SC',serif",
+              fontSize:"clamp(14px,3.5vw,16px)",
+              color:i===r.body.length-1?"#d8d0c0":"#6a6058",
+              lineHeight:2.05,marginBottom:18,
+              fontWeight:i===r.body.length-1?400:300,
+              textShadow:"1px 0 rgba(0,255,255,0.15)",
+            }}>{p}</p>
+          ))}
+        </div>
 
         {/* Save card button */}
         <button onClick={handleSave} disabled={saveState==="saving"} style={{
