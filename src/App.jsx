@@ -511,6 +511,8 @@ function MusicPlayer({acc,autoPlay}){
   const[playing,setPlaying]=useState(false);
   const[prog,setProg]=useState(0);
   const ref=useRef(null);
+  const ctxRef=useRef(null);
+  const gainRef=useRef(null);
   const ensureAudio=()=>{
     if(!ref.current&&AUDIO_SRC){
       ref.current=new Audio(AUDIO_SRC);
@@ -522,34 +524,45 @@ function MusicPlayer({acc,autoPlay}){
     }
     return ref.current;
   };
+  const ensureGain=()=>{
+    if(ctxRef.current)return gainRef.current;
+    if(!ref.current)return null;
+    try{
+      const ctx=new(window.AudioContext||window.webkitAudioContext)();
+      const src=ctx.createMediaElementSource(ref.current);
+      const gain=ctx.createGain();
+      src.connect(gain);
+      gain.connect(ctx.destination);
+      ctxRef.current=ctx;
+      gainRef.current=gain;
+      if(ctx.state==="suspended")ctx.resume();
+      return gain;
+    }catch(e){return null;}
+  };
   useEffect(()=>{
     if(!autoPlay||!AUDIO_SRC)return;
     const audio=ensureAudio();
     if(!audio)return;
-    audio.volume=0;
+    const gain=ensureGain();
+    const ctx=ctxRef.current;
+    if(gain&&ctx){
+      gain.gain.setValueAtTime(0.001,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.35,ctx.currentTime+4);
+    }
     audio.play().catch(()=>{});
     setPlaying(true);
-    const totalDuration=4000;
-    const steps=40;
-    const interval=totalDuration/steps;
-    const targetVolume=0.35;
-    const volumeStep=targetVolume/steps;
-    let currentStep=0;
-    const fadeTimer=setInterval(()=>{
-      currentStep++;
-      if(ref.current&&currentStep<=steps){
-        ref.current.volume=Math.min(volumeStep*currentStep,targetVolume);
-      }else{
-        clearInterval(fadeTimer);
-      }
-    },interval);
-    return()=>clearInterval(fadeTimer);
   },[]);
   const toggle=()=>{
     if(!AUDIO_SRC)return;
     ensureAudio();
+    ensureGain();
     if(playing){ref.current.pause();setPlaying(false);}
-    else{ref.current.play().catch(()=>{});setPlaying(true);}
+    else{
+      const g=gainRef.current,c=ctxRef.current;
+      if(g&&c)g.gain.setValueAtTime(0.35,c.currentTime);
+      ref.current.play().catch(()=>{});
+      setPlaying(true);
+    }
   };
   return(
     <div style={{
